@@ -1,0 +1,16 @@
+{
+  "pluginAlias": "GivEnergy",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "API_KEY",
+        "type": "string",
+        "required": true,
+        "default": "The API Key for Giv Energy Cloud"
+      }
+    }
+  }
+}
