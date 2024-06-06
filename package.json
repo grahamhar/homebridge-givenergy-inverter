@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "GivEnergy",
   "name": "homebridge-givenergy",
-  "version": "0.0.1",
+  "version": "0.0.2-beta.0",
   "description": "GivEnergy related information.",
   "license": "Apache-2.0",
   "repository": {
@@ -24,7 +24,9 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin", "givenergy", "inverter"
+    "homebridge-plugin",
+    "givenergy",
+    "inverter"
   ],
   "devDependencies": {
     "@types/node": "^18.16.20",
