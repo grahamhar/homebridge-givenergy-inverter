@@ -5,11 +5,10 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "API_KEY",
+      "API_KEY": {
+        "title": "The API_KEY for GivEnergy Cloud Account",
         "type": "string",
-        "required": true,
-        "default": "The API Key for Giv Energy Cloud"
+        "required": true
       }
     }
   }
