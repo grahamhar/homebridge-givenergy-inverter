@@ -5,6 +5,7 @@
   "version": "0.0.7-beta.0",
   "description": "GivEnergy related information.",
   "license": "Apache-2.0",
+  "homepage": "https://grahamhar.github.io/homebridge-givenergy-inverter/",
   "repository": {
     "type": "git",
     "url": "https://github.com/grahamhar/homebridge-givenergy-inverter.git"
