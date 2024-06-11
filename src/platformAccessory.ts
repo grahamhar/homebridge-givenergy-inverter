@@ -65,15 +65,15 @@ export class GivEnergyInverterAccessory {
     batteryService.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Battery');
 
     const scheduledCharge = this.accessory.getService('Scheduled Charge') ||
-      this.accessory.addService(this.platform.Service.Lightbulb, 'Scheduled Charge', 'Scheduled-Charge');
+      this.accessory.addService(this.platform.Service.MotionSensor, 'Scheduled Charge', 'Scheduled-Charge');
     scheduledCharge.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledCharge');
 
     const scheduledExport = this.accessory.getService('Scheduled Export') ||
-      this.accessory.addService(this.platform.Service.Lightbulb, 'Scheduled Export', 'Scheduled-Export');
+      this.accessory.addService(this.platform.Service.MotionSensor, 'Scheduled Export', 'Scheduled-Export');
     scheduledExport.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledExport');
 
     const ecoMode = this.accessory.getService('Eco Mode') ||
-      this.accessory.addService(this.platform.Service.Lightbulb, 'Eco Mode', 'Eco-Mode');
+      this.accessory.addService(this.platform.Service.MotionSensor, 'Eco Mode', 'Eco-Mode');
     ecoMode.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'EcoMode');
 
     this.accessory.addService(this.platform.Service.PowerManagement);
@@ -109,13 +109,13 @@ export class GivEnergyInverterAccessory {
     batteryService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .onGet(this.handleStatusLowBatteryGet.bind(this));
 
-    scheduledCharge.getCharacteristic(this.platform.Characteristic.On)
+    scheduledCharge.getCharacteristic(this.platform.Characteristic.MotionDetected)
       .onGet(this.getScheduledCharge.bind(this));
 
-    scheduledExport.getCharacteristic(this.platform.Characteristic.On)
+    scheduledExport.getCharacteristic(this.platform.Characteristic.MotionDetected)
       .onGet(this.getScheduledExport.bind(this));
 
-    ecoMode.getCharacteristic(this.platform.Characteristic.On)
+    ecoMode.getCharacteristic(this.platform.Characteristic.MotionDetected)
       .onGet(this.getEcoMode.bind(this));
 
 
@@ -173,9 +173,9 @@ export class GivEnergyInverterAccessory {
         this.inverterStates.gridPower > 0 ? this.inverterStates.gridPower : 0.0001);
       solarService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel,
         this.inverterStates.arrayPower > 0 ? this.inverterStates.arrayPower : 0.0001);
-      scheduledCharge.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.scheduledCharge);
-      scheduledExport.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.scheduledDischarge);
-      ecoMode.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.ecoMode);
+      scheduledCharge.updateCharacteristic(this.platform.Characteristic.MotionDetected, this.inverterStates.scheduledCharge);
+      scheduledExport.updateCharacteristic(this.platform.Characteristic.MotionDetected, this.inverterStates.scheduledDischarge);
+      ecoMode.updateCharacteristic(this.platform.Characteristic.MotionDetected, this.inverterStates.ecoMode);
       this.platform.log.debug('Updating data:', JSON.stringify(this.inverterStates));
       this.platform.log.debug('Solar power:', this.inverterStates.arrayPower);
     }, 20000);
