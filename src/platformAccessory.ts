@@ -64,13 +64,13 @@ export class GivEnergyInverterAccessory {
       this.accessory.addService(this.platform.Service.Battery, 'Battery', 'Battery');
     batteryService.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Battery');
 
-    const scheduledCharge = this.accessory.getService('Scheduled Charge') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Scheduled Charge', 'Scheduled-Charge');
-    scheduledCharge.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledCharge');
+    const scheduledCharge = this.accessory.getService('Charge Scheduled') ||
+      this.accessory.addService(this.platform.Service.MotionSensor, 'Charge Scheduled', 'Scheduled-Charge');
+    scheduledCharge.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Charge Scheduled');
 
-    const scheduledExport = this.accessory.getService('Scheduled Export') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Scheduled Export', 'Scheduled-Export');
-    scheduledExport.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledExport');
+    const scheduledExport = this.accessory.getService('Export Scheduled') ||
+      this.accessory.addService(this.platform.Service.MotionSensor, 'Export Scheduled', 'Scheduled-Export');
+    scheduledExport.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Export Scheduled');
 
     const ecoMode = this.accessory.getService('Eco Mode') ||
       this.accessory.addService(this.platform.Service.MotionSensor, 'Eco Mode', 'Eco-Mode');
@@ -85,9 +85,9 @@ export class GivEnergyInverterAccessory {
 
     batteryService.name = 'Battery';
 
-    scheduledCharge.name = 'Scheduled Charge';
+    scheduledCharge.name = 'Charge Scheduled';
 
-    scheduledExport.name = 'Scheduled Export';
+    scheduledExport.name = 'Export Scheduled';
 
     ecoMode.name = 'Eco Mode';
 
