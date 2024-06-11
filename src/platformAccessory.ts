@@ -65,16 +65,18 @@ export class GivEnergyInverterAccessory {
     batteryService.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Battery');
 
     const scheduledCharge = this.accessory.getService('Scheduled Charge') ||
-      this.accessory.addService(this.platform.Service.Switch, 'Scheduled Charge', 'Scheduled-Charge');
+      this.accessory.addService(this.platform.Service.Lightbulb, 'Scheduled Charge', 'Scheduled-Charge');
     scheduledCharge.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledCharge');
 
     const scheduledExport = this.accessory.getService('Scheduled Export') ||
-      this.accessory.addService(this.platform.Service.Switch, 'Scheduled Export', 'Scheduled-Export');
+      this.accessory.addService(this.platform.Service.Lightbulb, 'Scheduled Export', 'Scheduled-Export');
     scheduledExport.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledExport');
 
     const ecoMode = this.accessory.getService('Eco Mode') ||
-      this.accessory.addService(this.platform.Service.Switch, 'Eco Mode', 'Eco-Mode');
+      this.accessory.addService(this.platform.Service.Lightbulb, 'Eco Mode', 'Eco-Mode');
+    ecoMode.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'EcoMode');
 
+    this.accessory.addService(this.platform.Service.PowerManagement);
     gridExportService.name = 'Grid Export';
 
     gridImportService.name = 'Grid Import';
