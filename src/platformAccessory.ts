@@ -2,6 +2,7 @@ import { Service, PlatformAccessory } from 'homebridge';
 
 import { GivEnergyPlugin } from './platform';
 import axios from 'axios';
+// import getInverterSettings from './utils';
 
 /**
  * Platform Accessory
@@ -22,6 +23,9 @@ export class GivEnergyInverterAccessory {
     batteryPower: this.accessory.context.device.battery.power,
     arrayPower: this.accessory.context.device.solar.power,
     gridPower: this.accessory.context.device.grid.power,
+    scheduledCharge: this.accessory.context.device.battery.scheduledCharge,
+    scheduledDischarge: this.accessory.context.device.battery.scheduledDischarge,
+    ecoMode: this.accessory.context.ecoEnabled,
   };
 
   constructor(
@@ -60,6 +64,17 @@ export class GivEnergyInverterAccessory {
       this.accessory.addService(this.platform.Service.Battery, 'Battery', 'Battery');
     batteryService.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Battery');
 
+    const scheduledCharge = this.accessory.getService('Scheduled Charge') ||
+      this.accessory.addService(this.platform.Service.Switch, 'Scheduled Charge', 'Scheduled-Charge');
+    scheduledCharge.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledCharge');
+
+    const scheduledExport = this.accessory.getService('Scheduled Export') ||
+      this.accessory.addService(this.platform.Service.Switch, 'Scheduled Export', 'Scheduled-Export');
+    scheduledExport.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'ScheduledExport');
+
+    const ecoMode = this.accessory.getService('Eco Mode') ||
+      this.accessory.addService(this.platform.Service.Switch, 'Eco Mode', 'Eco-Mode');
+
     gridExportService.name = 'Grid Export';
 
     gridImportService.name = 'Grid Import';
@@ -67,6 +82,12 @@ export class GivEnergyInverterAccessory {
     solarService.name = 'Solar';
 
     batteryService.name = 'Battery';
+
+    scheduledCharge.name = 'Scheduled Charge';
+
+    scheduledExport.name = 'Scheduled Export';
+
+    ecoMode.name = 'Eco Mode';
 
     gridImportService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
       .onGet(this.getGridImport.bind(this));
@@ -86,6 +107,15 @@ export class GivEnergyInverterAccessory {
     batteryService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .onGet(this.handleStatusLowBatteryGet.bind(this));
 
+    scheduledCharge.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getScheduledCharge.bind(this));
+
+    scheduledExport.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getScheduledExport.bind(this));
+
+    ecoMode.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getEcoMode.bind(this));
+
 
     setInterval(() => {
       axios.get(`https://api.givenergy.cloud/v1/inverter/${this.inverterStates.serial}/system-data/latest`, {headers: {
@@ -100,6 +130,36 @@ export class GivEnergyInverterAccessory {
       }).catch(error => {
         this.platform.log.error(error);
       });
+      axios.post(
+        `https://api.givenergy.cloud/v1/inverter/${this.inverterStates.serial}/settings/66/read`, {'context': 'homebridge'}, {headers: {
+          'Authorization': 'Bearer ' +this.platform.config.API_KEY,
+          'accept': 'application/json',
+        }, timeout: 5000},
+      ).then(response => {
+        this.inverterStates.scheduledCharge = response.data.data.value;
+      }).catch(error => {
+        this.platform.log.info(JSON.stringify(error));
+      });
+      axios.post(
+        `https://api.givenergy.cloud/v1/inverter/${this.inverterStates.serial}/settings/56/read`, {'context': 'homebridge'}, {headers: {
+          'Authorization': 'Bearer ' +this.platform.config.API_KEY,
+          'accept': 'application/json',
+        }, timeout: 5000},
+      ).then(response => {
+        this.inverterStates.scheduledDischarge = response.data.data.value;
+      }).catch(error => {
+        this.platform.log.info(JSON.stringify(error));
+      });
+      axios.post(
+        `https://api.givenergy.cloud/v1/inverter/${this.inverterStates.serial}/settings/24/read`, {'context': 'homebridge'}, {headers: {
+          'Authorization': 'Bearer ' +this.platform.config.API_KEY,
+          'accept': 'application/json',
+        }, timeout: 5000},
+      ).then(response => {
+        this.inverterStates.ecoMode = response.data.data.value;
+      }).catch(error => {
+        this.platform.log.info(JSON.stringify(error));
+      });
       this.service.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.On);
       batteryService.updateCharacteristic(this.platform.Characteristic.ChargingState,
         this.inverterStates.batteryPower < 0 ? this.platform.Characteristic.ChargingState.CHARGING :
@@ -111,9 +171,12 @@ export class GivEnergyInverterAccessory {
         this.inverterStates.gridPower > 0 ? this.inverterStates.gridPower : 0.0001);
       solarService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel,
         this.inverterStates.arrayPower > 0 ? this.inverterStates.arrayPower : 0.0001);
+      scheduledCharge.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.scheduledCharge);
+      scheduledExport.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.scheduledDischarge);
+      ecoMode.updateCharacteristic(this.platform.Characteristic.On, this.inverterStates.ecoMode);
       this.platform.log.debug('Updating data:', JSON.stringify(this.inverterStates));
       this.platform.log.debug('Solar power:', this.inverterStates.arrayPower);
-    }, 60000);
+    }, 20000);
   }
 
 
@@ -156,5 +219,19 @@ export class GivEnergyInverterAccessory {
     return this.inverterStates.On;
   }
 
+  async getScheduledCharge() {
+    this.platform.log.debug('Triggered GET ScheduledCharge');
+    return this.inverterStates.scheduledCharge;
+  }
+
+  async getScheduledExport() {
+    this.platform.log.debug('Triggered GET ScheduledExport');
+    return this.inverterStates.scheduledDischarge;
+  }
+
+  async getEcoMode() {
+    this.platform.log.debug('Triggered GET EcoMode');
+    return this.inverterStates.ecoMode;
+  }
 }
 

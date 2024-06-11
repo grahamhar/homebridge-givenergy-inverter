@@ -1,13 +1,24 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import {
+  API,
+  Characteristic,
+  DynamicPlatformPlugin,
+  Logger,
+  PlatformAccessory,
+  PlatformConfig,
+  Service,
+} from 'homebridge';
 
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { GivEnergyInverterAccessory } from './platformAccessory';
+import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
+import {GivEnergyInverterAccessory} from './platformAccessory';
 import axios from 'axios';
+import getInverterSettings from './utils';
 
 interface battery {
   percent: number;
   power: number;
+  scheduledCharge: boolean;
+  scheduledDischarge: boolean;
 }
 
 interface grid {
@@ -24,6 +35,7 @@ interface GivEnergyInverter {
   battery: battery;
   grid: grid;
   solar: solar;
+  ecoMode: boolean;
 }
 /**
  * HomebridgePlatform
@@ -87,7 +99,9 @@ export class GivEnergyPlugin implements DynamicPlatformPlugin {
     }).catch(error => {
       this.log.error(error);
     });
-    await serialNumbers.forEach(inverter => {
+
+    for (const inverter of serialNumbers) {
+      const [scheduleImportEnabled, scheduleExportEnabled, ecoEnabled] = await getInverterSettings(inverter.serial, this.config.API_KEY);
       axios.get(`https://api.givenergy.cloud/v1/inverter/${inverter.serial}/system-data/latest`, {headers: {
         'Authorization': 'Bearer ' + this.config.API_KEY,
         'accept': 'application/json',
@@ -100,6 +114,8 @@ export class GivEnergyPlugin implements DynamicPlatformPlugin {
           battery: {
             percent: response.data.data.battery.percent,
             power: response.data.data.battery.power,
+            scheduledCharge: scheduleExportEnabled,
+            scheduledDischarge: scheduleImportEnabled,
           },
           grid: {
             power: response.data.data.grid.power,
@@ -107,18 +123,19 @@ export class GivEnergyPlugin implements DynamicPlatformPlugin {
           solar: {
             power: response.data.data.solar.power,
           },
+          ecoMode: ecoEnabled,
         };
         const uuid = this.api.hap.uuid.generate(givInverter.serialNumber);
         const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
         if (existingAccessory) {
 
           this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
+          existingAccessory.context.device = givInverter;
           new GivEnergyInverterAccessory(this, existingAccessory);
 
         } else {
           this.log.info('Adding new accessory:', givInverter.displayName);
-          this.log.info('Adding new accessory:', JSON.stringify(givInverter));
+          this.log.debug('Adding new accessory:', JSON.stringify(givInverter));
 
           const accessory = new this.api.platformAccessory(givInverter.displayName, uuid);
 
@@ -131,7 +148,7 @@ export class GivEnergyPlugin implements DynamicPlatformPlugin {
       }).catch(error => {
         this.log.error(error);
       });
-    });
+    }
 
   }
 }
