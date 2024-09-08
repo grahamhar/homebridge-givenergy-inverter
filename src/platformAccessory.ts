@@ -76,7 +76,6 @@ export class GivEnergyInverterAccessory {
       this.accessory.addService(this.platform.Service.MotionSensor, 'Eco Mode', 'Eco-Mode');
     ecoMode.setCharacteristic(this.platform.Characteristic.ConfiguredName, 'EcoMode');
 
-    this.accessory.addService(this.platform.Service.PowerManagement);
     gridExportService.name = 'Grid Export';
 
     gridImportService.name = 'Grid Import';
@@ -117,7 +116,6 @@ export class GivEnergyInverterAccessory {
 
     ecoMode.getCharacteristic(this.platform.Characteristic.MotionDetected)
       .onGet(this.getEcoMode.bind(this));
-
 
     setInterval(() => {
       axios.get(`https://api.givenergy.cloud/v1/inverter/${this.inverterStates.serial}/system-data/latest`, {headers: {
