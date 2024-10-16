@@ -1,6 +1,12 @@
 name: Build and Lint
 
-on: [push, pull_request]
+on:
+  [push, pull_request]
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -28,7 +34,9 @@ jobs:
 
       - name: Build the project
         run: npm run build
-
+      - uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'dist/*'
       - name: List, audit, fix outdated dependencies and build again
         run: |
           npm list --outdated
